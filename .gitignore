@@ -1,0 +1,4 @@
+target/*
+out/*
+.idea/*
+subtitle-downloader.iml

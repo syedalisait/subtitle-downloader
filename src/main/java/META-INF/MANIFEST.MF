@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: jsoup-1.11.3.jar gson-2.8.5.jar
+Main-Class: SubtitleDownloader
+
