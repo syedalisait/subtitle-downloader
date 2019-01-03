@@ -79,7 +79,7 @@ public class SubtitleDownloader {
         }
         else if (movieFilePath != null) {
             // Get MovieName using Full Path of Movie File Location
-            System.out.println("Movie File Path: " + movieFilePath);
+            System.out.println("Movie File Path:\n\t" + movieFilePath);
             String movieName = getMovieName(movieFilePath);
             // Call get Subtitles to download the subtitles to the movieFilePath location
             if(!getSubtitles(movieName, movieFilePath)) {
@@ -105,7 +105,7 @@ public class SubtitleDownloader {
             new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
         }
         else {
-            System.out.println("Please provide one of the following: \n 1) Movie Name\n2) Movie File Path\n3) Movie Folder Path is null");
+            System.out.println("Please provide one of the following: \n1) Movie Name\n2) Movie File Path\n3) Movie Folder Path");
             Usage();
         }
     }
@@ -139,10 +139,12 @@ public class SubtitleDownloader {
                     Optional<File> file = Arrays.stream(temp.listFiles()).filter(f -> checkExtension(f, getFileExtensions())).findFirst();
                     if (file.isPresent()) {
                         String movieFilePath = file.get().toString();
-                        System.out.println("\nMovie File Path: " + movieFilePath);
+                        System.out.println("\nMovie File Path:\n\t" + movieFilePath);
                         String movieName = getMovieName(movieFilePath);
                         if(!getSubtitles(movieName, movieFilePath)) {
                             System.out.println("\nSkipping Downloading Subtitles for the Current Movie");
+                            System.out.println("---------------------------------------------------------------" +
+                                    "---------------------------------------------------\n");
                         }
                     }
                 }
@@ -161,8 +163,10 @@ public class SubtitleDownloader {
         boolean flag = true;
 
         if (movieName == null) {
-            System.out.println("Movie doesn't exist OR there is typo in the \"Movie Name\" " +
-                    "which was Parsed from Movie filepath\n\nPlease Enter the Movie Name: ( Press ENTER To SKIP )");
+            System.out.println("\nMovie doesn't exist in yifysubtitles.com\n\t\t( OR )\n\"Movie Name\" " +
+                    "which was parsed from Movie filepath gives empty result when searched\n" +
+                    "\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter 3\" to search again"
+                    + "\nMovie name ( Press ENTER To SKIP ): ");
             movieName = s.nextLine().trim();
             // Sometimes User might want to skip entering the Movie Name and move on to Next Movie
             // So Pressing Enter should skip Downloading Subtitles for the Movie
@@ -171,23 +175,27 @@ public class SubtitleDownloader {
             }
             flag = false;
         }
-        System.out.println("Movie Name: " + movieName);
+        System.out.println("Movie: " + movieName);
 
         // HTML Content of all Movies matching the movie name
         Elements elements = getSearchResults(movieName);
 
         // If the result is empty, Ask the User to input the Movie name
         if (elements == null || elements.isEmpty()) {
-            System.out.println("Search Result returns Empty for the Movie Name: " + movieName);
+            System.out.println("\nNo results were found for Movie \"" + movieName + "\" in yifysubtitles.com");
             // If the User was given an option to type the movie name, Don't prompt the user to Enter the Movie Name again
             if (!flag) {
                 return false;
             }
-            System.out.print("Enter the Correct MOVIE NAME to SEARCH: ");
+            System.out.print("\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter 3\" to search again" +
+                    "\nMovie name ( Press ENTER To SKIP ): ");
             movieName = s.nextLine().trim();
+            if (movieName.equals("")) {
+                return false;
+            }
             elements = getSearchResults(movieName);
             if (elements == null || elements.isEmpty()) {
-                System.out.println("Movie: " + movieName + " does not exists in YifySubtitles.com");
+                System.out.println("Movie: " + movieName + " does not exists in yifysubtitles.com");
                 return false;
             }
         }
@@ -196,7 +204,7 @@ public class SubtitleDownloader {
             movieUrl = getMovieURL(elements.get(0));
         }
         else {
-            System.out.println("More than one result for Movie Name: " + movieName);
+            System.out.println("More than one result found for: " + movieName);
             AtomicInteger i = new AtomicInteger(0);
             elements.forEach(e -> displayMovieAndYear(e, i.incrementAndGet()));
             System.out.print("Please enter the number to select the movie to download subtitles ( PRESS 0 TO SKIP ): ");
@@ -217,7 +225,7 @@ public class SubtitleDownloader {
 
         String subtitleUrl = getSubtitleURL(movieUrl, language);
         if (subtitleUrl == null) {
-            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in \"" + language  + "\"" + language);
+            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in \"" + language  + "\"" + language + "in yifysubtitles.com");
             System.out.println("URL: " + movieUrl);
             return false;
         }
@@ -238,7 +246,7 @@ public class SubtitleDownloader {
         }
 
         if (movieFolder == null) {
-            System.out.println("Something went wrong while trying to get Movie folder for Movie File Path: " + movieFilePath);
+            System.out.println("Something went wrong while trying to get Movie folder for Movie File Path:\n\t" + movieFilePath + "\n");
             return false;
         }
 
@@ -275,7 +283,9 @@ public class SubtitleDownloader {
 
             // If the Yify subtitle site returns no results, hit the OMDB API to retrieve the movie name
             if (element != null && "no results".equals(element.text())) {
-                // Hit OMDB Api to retrieve the movie name
+                System.out.println("\nNo results in yifysubtitles.com for Movie: " + movieName +"\n");
+                System.out.print("Closest matching ");
+                // Hit OMDB API to retrieve the Movie name
                 String OmdbUrl = "http://www.omdbapi.com/?apikey=d345b81e&t=" + movieName.replace(" ", "+");
                 String omdbJsonData = Jsoup.connect(OmdbUrl).ignoreContentType(true).execute().body();
                 JsonObject jsonObject = new Gson().fromJson(omdbJsonData, JsonObject.class);
