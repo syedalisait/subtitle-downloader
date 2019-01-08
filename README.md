@@ -1,9 +1,32 @@
 ## Subtitle Downloader
-Subtitle Downloader is a Java Command Line tool to download subtitles for Movies in any language especially for Movies downloaded from Yify/YTS. 
+Subtitle Downloader is a Java Command Line tool to download subtitles for Movies in any language especially for Movies downloaded from Yify/YTS.
+
 Download link: [subtitle-downloader](https://github.com/syedalisait/subtitle-downloader/releases/tag/v1.0)
+
 Refer [Downloading Subtitles](#downloading-subtitles) section for help
 
-#### Overview
+## Table of Contents
+  * [Overview](#overview)
+  * [Pre-requisites](#pre-requisites)
+  * [Verification](#verification)
+    + [Windows](#windows)
+    + [MAC/Linux](#mac-and-linux)
+  * [Installation](#installation)
+  * [Downloading Subtitles](#downloading-subtitles)
+    + [Downloading Subtitles with Movie Name](#downloading-subtitles-with-movie-name)
+    + [Downloading Subtitles with Movie File Path](#downloading-subtitles-with-movie-file-path)
+    + [Downloading Subtitles with Movie Directory in Bulk](#downloading-subtitles-with-movie-directory-in-bulk)
+    + [Downloading Subtitles with specific Language](#downloading-subtitles-with-specific-language)
+  * [Development Components](#development-components)
+  * [Working of Subtitle Downloader](#working-of-subtitle-downloader)
+    + [Given a Movie Name](#given-a-movie-name)
+    + [Given a File Path](#given-a-file-path)
+    + [Given a Directory](#given-a-directory)
+  * [Contribution](#contribution)
+  * [Future Ideas](#future-ideas)
+
+
+### Overview
 Downloading subtitles for movies is a repetitive task which involves the following steps
 1. Search for the subtitles Online
 2. Download the highest rated subtitle
@@ -19,14 +42,14 @@ Subtitle Downloader solves this problem. All you have to do is give **one of the
 
 You can also download subtitles for Movies in a specific language. By default downloads Subtitles in English
 
-#### Pre-requisites
+### Pre-requisites
 For this to work you need to install Java in your system
 Follow this [tutorial](https://www.guru99.com/install-java.html), it hardly takes 5 mins to set up and install Java
 
-#### Verification
+### Verification
 Once Java installation is complete, please do verify whether the installation is successful
 
-##### Windows
+#### Windows
 - Press Windows + R button to open the Run window. Type cmd to open the Command-Line for Windows 
 - Type `java -version` command to verify Java installation and its okay if the version number is different from what is shown below
 ```
@@ -41,7 +64,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
 C:\Program Files\Java\jdk1.8.0_121\bin\java -version
 ```
 
-##### MAC/Linux
+#### MAC and Linux
 - Open Terminal and type the command to verify
 ```
 $ java -version
@@ -50,11 +73,11 @@ Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
 Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
 ```
 
-#### Installation
+### Installation
 - Download the subtitle-downloader from [here](https://github.com/syedalisait/subtitle-downloader/releases/tag/v1.0)
 - Move the downloaded file to your preferred location where it is easy to access frequently
 
-#### Downloading Subtitles
+### Downloading Subtitles
 
 - Open Terminal/Cmd based on your Operating System (MAC/Windows/Unix)
 - Move to the location of the downloaded(`subtitle-downloader.jar`) jar file. This can usually be done using the `cd` command in most of the Operating System
@@ -63,7 +86,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
 
 <br>
 
-##### Downloading Subtitles with Movie Name
+#### Downloading Subtitles with Movie Name
 
 - Open Terminal/Cmd and Move to the location where you need the subtitles for the Movie to be downloaded
 - Command:
@@ -81,7 +104,7 @@ C:/Downloads/Movies/Inception> java -jar "C:/Users/downloads/subtitle-downloader
 
 <br>
 
-##### Downloading Subtitles with Movie File Path
+#### Downloading Subtitles with Movie File Path
 Command:
 ```
 java -jar <JAR_FILE_PATH> -mP <MOVIE_FILE_PATH>
@@ -97,7 +120,7 @@ java -jar "C:/Users/downloads/subtitle-downloader.jar" -mP "C:/Downloads/Movies/
 
 <br>
 
-##### Downloading Subtitles with Movie Directory in Bulk
+#### Downloading Subtitles with Movie Directory in Bulk
 Command:
 ```
 java -jar <JAR_FILE_PATH> -mD <MOVIES_FOLDER_PATH>
@@ -118,43 +141,43 @@ java -jar <JAR_FILE_PATH> -mD <MOVIES_FOLDER_PATH>
 java -jar "C:/Users/downloads/subtitle-downloader.jar" -mD "C:/Downloads/Movies"
 ```
 
-##### Downloading Subtitles with specific Language
+#### Downloading Subtitles with specific Language
 - Can be used with other above commands with an extra parameter
 Command:
 ```
 java -jar <JAR_FILE_PATH> -m <MOVIES_NAME> -lang "French"
 ```
 
-#### Development Components
+### Development Components
 - Language: Core Java
 - Source of Subtitles: Downloads Subtitles from yifysubtitles.com
-- Movie Name: OmdbApi<https://www.omdbapi.com/> to get the correct Movie Name
-- HTML Parser: Using Jsoup<https://jsoup.org/> to parse the contents of html
-- JSON Parser: Using Gson<https://github.com/google/gson> to parse the Json
+- Movie Name: [OmdbApi](https://www.omdbapi.com/) to get the correct Movie Name
+- HTML Parser: Using [Jsoup](https://jsoup.org/) to parse the contents of html
+- JSON Parser: Using [Gson](https://github.com/google/gson) to parse the Json
 
-#### Working of Subtitle Downloader
+### Working of Subtitle Downloader
 
-##### Given a Movie Name
+#### Given a Movie Name
 - Searches for the movie in yifysubtitles.com
 - If the movie is found or if there are multiple movies found, returns the list and asks the user to select one of the movie
 - When the user selects the movie, downloads the highest rated subtitle for the movie in yifysubtitles.com
 - If there is a specific language that the user has provided, then searches for the highest rated subtitle for the specific language and downloads the movie
 
-##### Given a File Path
+#### Given a File Path
 - Parse the Movie File Path to guess the right movie name
 - Searches yifysubtitles.com to find out if any movie exists
 - If none were found, then hits Omdb Api to figure out the movie name
 - Still if it cannot find the results, asks the user to input the correct movie name
 - Then same logic as [above](#given-a-movie-name)
 
-##### Given a Directory
+#### Given a Directory
 - Performs the same logic as [Given a File Path](#given-a-file-path) for all the movies
 - Checks if the movie already has .srt file
 - If yes Skips downloading the Subtitle for that Movie
 
-#### Contribution
+### Contribution
 - Contributions are welcome even if its relatively simple in terms of Exception handling, Conversion of Java 7 to Java 8, improvisation of Logic and any other improvements that can be made to the tool
 
-#### Future Ideas/Implementation
+### Future Ideas
 - Searching Multiple sites for subtitles if its not present in yifysubtitles (Subscene, Opensubtitles etc.)
 - Transition from Command Line to GUI with JavaFX or Swing
