@@ -29,15 +29,15 @@ public class SubtitleDownloader {
         System.out.println("------");
         System.out.println("\nCommand to get Subtitle with Movie Name: ");
         System.out.println("\tjava -jar <JAR_FILE_PATH> -m <MOVIE NAME>");
-        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/SubtitleDownloader.jar\" -m \"Inception\"");
+        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/subtitle-downloader.jar\" -m \"Inception\"");
         System.out.println("\n\t\tOR");
         System.out.println("\nCommand to get Subtitles with Movie File Path: ");
         System.out.println("\tjava -jar <JAR_FILE_PATH> -mP <MOVIE_FILE_PATH>");
-        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/SubtitleDownloader.jar\" -mP \"E:/Movies/Final Destination/Final.Destination.2009.mp4\"");
+        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/subtitle-downloader.jar\" -mP \"E:/Movies/Final Destination/Final.Destination.2009.mp4\"");
         System.out.println("\n\t\tOR");
         System.out.println("\nCommand to get Subtitles for all the Movies in separate folders present inside a Folder:");
         System.out.println("\tjava -jar <JAR_FILE_PATH> -mD <MOVIES_FOLDER_PATH>");
-        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/SubtitleDownloader.jar\" -mD \"E:/Movies\"");
+        System.out.println("\nExample:\n\tjava -jar \"C:/Users/admin/downloads/subtitle-downloader.jar\" -mD \"E:/Movies\"");
         System.out.println("\nOptional Parameters:");
         System.out.println("\t-lang Language of the Subtitle. By Default set to English");
     }
@@ -102,7 +102,7 @@ public class SubtitleDownloader {
              */
 
             // Lambda Expression for FileNameFilter
-            new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
+            String[] files = new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
         }
         else {
             System.out.println("Please provide one of the following: \n1) Movie Name\n2) Movie File Path\n3) Movie Folder Path");
@@ -165,8 +165,9 @@ public class SubtitleDownloader {
         if (movieName == null) {
             System.out.println("\nMovie doesn't exist in yifysubtitles.com\n\t\t( OR )\n\"Movie Name\" " +
                     "which was parsed from Movie filepath gives empty result when searched\n" +
-                    "\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter 3\" to search again"
-                    + "\nMovie name ( Press ENTER To SKIP ): ");
+                    "\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter\" to search once more" +
+                    "\nThis can provide appropriate results" +
+                    "\nMovie name ( Press ENTER To SKIP ): ");
             movieName = s.nextLine().trim();
             // Sometimes User might want to skip entering the Movie Name and move on to Next Movie
             // So Pressing Enter should skip Downloading Subtitles for the Movie
@@ -175,7 +176,7 @@ public class SubtitleDownloader {
             }
             flag = false;
         }
-        System.out.println("Movie: " + movieName);
+        System.out.println("\nMovie: " + movieName);
 
         // HTML Content of all Movies matching the movie name
         Elements elements = getSearchResults(movieName);
@@ -204,7 +205,7 @@ public class SubtitleDownloader {
             movieUrl = getMovieURL(elements.get(0));
         }
         else {
-            System.out.println("More than one result found for: " + movieName);
+            System.out.println("\nMore than one result found for: " + movieName);
             AtomicInteger i = new AtomicInteger(0);
             elements.forEach(e -> displayMovieAndYear(e, i.incrementAndGet()));
             System.out.print("Please enter the number to select the movie to download subtitles ( PRESS 0 TO SKIP ): ");
@@ -225,7 +226,7 @@ public class SubtitleDownloader {
 
         String subtitleUrl = getSubtitleURL(movieUrl, language);
         if (subtitleUrl == null) {
-            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in \"" + language  + "\"" + language + "in yifysubtitles.com");
+            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in \"" + language  + " in yifysubtitles.com");
             System.out.println("URL: " + movieUrl);
             return false;
         }
@@ -283,8 +284,6 @@ public class SubtitleDownloader {
 
             // If the Yify subtitle site returns no results, hit the OMDB API to retrieve the movie name
             if (element != null && "no results".equals(element.text())) {
-                System.out.println("\nNo results in yifysubtitles.com for Movie: " + movieName +"\n");
-                System.out.print("Closest matching ");
                 // Hit OMDB API to retrieve the Movie name
                 String OmdbUrl = "http://www.omdbapi.com/?apikey=d345b81e&t=" + movieName.replace(" ", "+");
                 String omdbJsonData = Jsoup.connect(OmdbUrl).ignoreContentType(true).execute().body();
@@ -292,6 +291,7 @@ public class SubtitleDownloader {
                 if (jsonObject == null || jsonObject.get("Title") == null) {
                     return null;
                 }
+                System.out.println("\nNo results in yifysubtitles.com for Movie: " + movieName + "\n" + "Closest matching ");
                 movieName = jsonObject.get("Title").getAsString();
             }
         }
@@ -433,6 +433,11 @@ public class SubtitleDownloader {
     }
 
     private static boolean checkExtension(File file, List<String> fileExtensions) {
+        int index = file.toString().lastIndexOf(".");
+        // If its a directory and there is no extension
+        if (index == -1) {
+            return false;
+        }
         String format = file.toString().substring(file.toString().lastIndexOf("."));
         return fileExtensions.contains(format);
     }
