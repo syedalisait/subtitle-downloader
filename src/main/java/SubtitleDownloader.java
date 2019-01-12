@@ -226,7 +226,7 @@ public class SubtitleDownloader {
 
         String subtitleUrl = getSubtitleURL(movieUrl, language);
         if (subtitleUrl == null) {
-            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in \"" + language  + " in yifysubtitles.com");
+            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in language \"" + language  + "\" in yifysubtitles.com");
             System.out.println("URL: " + movieUrl);
             return false;
         }
@@ -254,6 +254,8 @@ public class SubtitleDownloader {
         // Download and Extract the zip to get the Subtitle
         downloadSubtitle(downloadSubtitleUrl, movieFolder);
         System.out.println("\nSuccessfully downloaded Subtitle for Movie: " + movieName + "\n");
+        System.out.println("---------------------------------------------------------------" +
+                "---------------------------------------------------\n");
         return true;
     }
 
