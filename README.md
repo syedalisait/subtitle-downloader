@@ -17,11 +17,12 @@ Refer [Downloading Subtitles](#downloading-subtitles) section for help
     + [Downloading Subtitles with Movie File Path](#downloading-subtitles-with-movie-file-path)
     + [Downloading Subtitles with Movie Directory in Bulk](#downloading-subtitles-with-movie-directory-in-bulk)
     + [Downloading Subtitles with specific Language](#downloading-subtitles-with-specific-language)
-  * [Development Components](#development-components)
   * [Working of Subtitle Downloader](#working-of-subtitle-downloader)
     + [Given a Movie Name](#given-a-movie-name)
     + [Given a File Path](#given-a-file-path)
     + [Given a Directory](#given-a-directory)
+  * [Development Components](#development-components)
+  * [Development Setup](#development-setup)
   * [Contribution](#contribution)
   * [Future Ideas](#future-ideas)
 
@@ -148,13 +149,6 @@ Command:
 java -jar <JAR_FILE_PATH> -m <MOVIES_NAME> -lang "French"
 ```
 
-### Development Components
-- Language: Core Java
-- Source of Subtitles: Downloads Subtitles from yifysubtitles.com
-- Movie Name: [OmdbApi](https://www.omdbapi.com/) to get the correct Movie Name
-- HTML Parser: Using [Jsoup](https://jsoup.org/) to parse the contents of html
-- JSON Parser: Using [Gson](https://github.com/google/gson) to parse the Json
-
 ### Working of Subtitle Downloader
 
 #### Given a Movie Name
@@ -174,6 +168,27 @@ java -jar <JAR_FILE_PATH> -m <MOVIES_NAME> -lang "French"
 - Performs the same logic as [Given a File Path](#given-a-file-path) for all the movies
 - Checks if the movie already has .srt file
 - If yes Skips downloading the Subtitle for that Movie
+
+### Development Components
+- **Language:** Core Java
+- **Source of Subtitles:** Downloads Subtitles from yifysubtitles.com
+- **Movie Name:** [OmdbApi](https://www.omdbapi.com/) to get the correct Movie Name
+- **HTML Parser:** Using [Jsoup](https://jsoup.org/) to parse the contents of html
+- **JSON Parser:** Using [Gson](https://github.com/google/gson) to parse the Json
+- **Maven:** To manage dependencies (Gson and Jsoup)
+
+### Development Setup
+- Fork the repository
+- Then Clone the repository which has been created in your github account from local
+```
+git clone https://github.com/{USERNAME}/subtitle-downloader.git
+```
+- Open the project in any IDE (My preference is IntelliJ) by selecting `File -> New -> Project From Existing Sources`
+- Select the **subtitle-downloader**
+- On next window select "Maven" and then complete the next next windows with default settings and Finish
+- Running the program needs 'Command Line Arguments' as parameters. So, do a `Run -> Edit with Configuration` and add appropriate 'Command Line Arguments' (Example: -m "Inception")
+- Right click SubtitleDownloader.java and Run the program as Java Application
+- Output will be displayed in the Console
 
 ### Contribution
 - Contributions are welcome even if its relatively simple in terms of Exception handling, Conversion of Java 7 to Java 8, improvisation of Logic and any other improvements that can be made to the tool
