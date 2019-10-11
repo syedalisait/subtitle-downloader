@@ -1,10 +1,20 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -18,11 +28,15 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class SubtitleDownloader {
+public class SubtitleDownloader extends Application {
     private static String movieFolderPath = null;
     private static String movieFilePath = null;
     private static String language = "English";
     private static String movieName = null;
+    private static TextField movieNameBox;
+    private static TextField moviePathBox;
+    private static TextField movieFolderBox;
+    public static boolean useUI=false;
 
     private static void Usage() {
         System.out.println("\nUsage: ");
@@ -46,6 +60,7 @@ public class SubtitleDownloader {
         CommandOptions cmd = new CommandOptions(arguments);
         // Show Usage() if the user wants to know how to execute the program
         if (cmd.hasOption("-help")) {
+
             Usage();
             System.exit(0);
         }
@@ -66,47 +81,64 @@ public class SubtitleDownloader {
         if (cmd.hasOptionAndValue("-mD")) {
             movieFolderPath = cmd.valueOf("-mD");
         }
+
+        if(cmd.hasOption("-ui")){
+
+            useUI=true;
+
+
+
+        }
+
     }
 
     public static void main(String[] args) {
-        // Parse Arguments of the Program
-        parseArguments(args);
-        if (movieName != null) {
-            if (!getSubtitles(movieName, null)) {
-                System.out.println("\nEXITING THE PROGRAM!!!");
-                System.exit(1);
-            }
-        }
-        else if (movieFilePath != null) {
-            // Get MovieName using Full Path of Movie File Location
-            System.out.println("Movie File Path:\n\t" + movieFilePath);
-            String movieName = getMovieName(movieFilePath);
-            // Call get Subtitles to download the subtitles to the movieFilePath location
-            if(!getSubtitles(movieName, movieFilePath)) {
-                System.out.println("\nEXITING THE PROGRAM!!!");
-                System.exit(1);
-            }
-        }
-        else if (movieFolderPath != null) {
-            /*
-             * Expectation:
-             *       movieFolderPath is something like E:/Movies or E:/Downloads/Movies where all the movies are present inside
-             *       separate folders
-             * Example:
-             *       E:/Downloads/Movies/Thelma/Thelma (2017).mp4
-             *       E:/Downloads/Elle/Elle (2016).mp4
-             * Logic:
-             *       1) Parse through the directories inside "movieFolderPath"
-             *       2) If there are any Movie Folders with ".srt" file present, Ignore them
-             *       3) Else, download the subtitle for the movie
-             */
+//        parseArguments(args);
+      useUI=true;//only to test if it works.
 
-            // Lambda Expression for FileNameFilter
-            String[] files = new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
+        if(!useUI) {
+
+
+            // Parse Arguments of the Program
+            if (movieName != null) {
+                if (!getSubtitles(movieName, null)) {
+                    System.out.println("\nEXITING THE PROGRAM!!!");
+                    System.exit(1);
+                }
+            } else if (movieFilePath != null) {
+                // Get MovieName using Full Path of Movie File Location
+                System.out.println("Movie File Path:\n\t" + movieFilePath);
+                String movieName = getMovieName(movieFilePath);
+                // Call get Subtitles to download the subtitles to the movieFilePath location
+                if (!getSubtitles(movieName, movieFilePath)) {
+                    System.out.println("\nEXITING THE PROGRAM!!!");
+                    System.exit(1);
+                }
+            } else if (movieFolderPath != null) {
+                /*
+                 * Expectation:
+                 *       movieFolderPath is something like E:/Movies or E:/Downloads/Movies where all the movies are present inside
+                 *       separate folders
+                 * Example:
+                 *       E:/Downloads/Movies/Thelma/Thelma (2017).mp4
+                 *       E:/Downloads/Elle/Elle (2016).mp4
+                 * Logic:
+                 *       1) Parse through the directories inside "movieFolderPath"
+                 *       2) If there are any Movie Folders with ".srt" file present, Ignore them
+                 *       3) Else, download the subtitle for the movie
+                 */
+
+                // Lambda Expression for FileNameFilter
+                String[] files = new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
+            } else {
+                System.out.println("Please provide one of the following: \n1) Movie Name\n2) Movie File Path\n3) Movie Folder Path");
+                Usage();
+            }
         }
-        else {
-            System.out.println("Please provide one of the following: \n1) Movie Name\n2) Movie File Path\n3) Movie Folder Path");
-            Usage();
+        else{
+
+            launch(args);
+
         }
     }
 
@@ -130,6 +162,9 @@ public class SubtitleDownloader {
      **/
 
     private static boolean getSubtitlesForAllMovies(File directory, String name) {
+
+        System.out.println("directory: "+directory+"\n"+"name: "+name);
+
         try {
             File temp = new File(directory, name);
             if (temp.isDirectory() && temp.listFiles() != null) {
@@ -454,6 +489,110 @@ public class SubtitleDownloader {
         System.out.println(n + ". " + movieName + " " + year);
     }
 
+
+    public void start(Stage primaryStage) {
+
+        primaryStage.setResizable(false);
+
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, 350, 300);
+
+        GridPane pane = new GridPane();
+        pane.setAlignment(Pos.TOP_CENTER);
+        pane.setHgap(5);
+        pane.setVgap(5);
+        pane.setPadding(new Insets(80,25,25,25));
+
+
+        movieNameBox=new TextField();
+        moviePathBox=new TextField();
+        movieFolderBox=new TextField();
+
+        Button quiteBtn=new Button("Exit");
+
+        Label nameLable = new Label("MovieName: ");
+        Label moviePathLable = new Label("MoviePath: ");
+        Label moviesFolderPathLable = new Label("MoviesFolderPath: ");
+
+        pane.add(nameLable, 0, 1);
+        pane.add(movieNameBox, 1, 1);
+        pane.add(moviePathLable, 0, 2);
+        pane.add(moviePathBox, 1, 2);
+        pane.add(moviesFolderPathLable, 0, 3);
+        pane.add(movieFolderBox, 1, 3);
+        pane.add(quiteBtn,1,6);
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(pane);
+
+
+        movieNameBox.setOnAction(click-> {
+
+            String movieName = movieNameBox.getText();
+            String args[] = new String[4];
+            args[0] = movieName;
+//            System.out.println(args[0] + "******");
+//            SubtitleDownloader.parseArguments(args);
+
+            if(movieName!=null){
+            if (!getSubtitles(movieName, null)) {
+                System.out.println("\nEXITING THE PROGRAM!!!");
+                System.exit(1);
+            }
+        }
+
+        } );
+
+        moviePathBox.setOnAction(click->{
+
+            String moviePath=moviePathBox.getText();
+            System.out.println(moviePath);
+            String args[]=new String[4];
+            args[0]=moviePath;
+            String movieNamFromPath = getMovieName(moviePath);
+
+            if(moviePath!=null){
+                if (!getSubtitles(movieNamFromPath, moviePath)) {
+                    System.out.println("\nEXITING THE PROGRAM!!!");
+                    System.exit(1);
+                }
+            }
+
+
+        });
+
+        movieFolderBox.setOnAction(click->{
+
+            String movieFolderPath=movieFolderBox.getText();
+            System.out.println(movieFolderPath);
+            String args[]=new String[4];
+            args[0]=movieFolderPath;
+
+            if(movieFolderPath!=null){
+                String[] files = new File(movieFolderPath).list((directory, name) ->
+
+                        getSubtitlesForAllMovies(directory,name)
+                );
+
+            }
+
+        });
+
+        quiteBtn.setOnAction(click->{
+
+            System.exit(0);
+
+        });
+
+
+        root.getChildren().add(borderPane);
+        primaryStage.setTitle("SubtitleDownloader");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+
+
+    }
 
 }
 
