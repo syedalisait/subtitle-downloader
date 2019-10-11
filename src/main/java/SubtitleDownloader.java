@@ -93,8 +93,7 @@ public class SubtitleDownloader extends Application {
     }
 
     public static void main(String[] args) {
-//        parseArguments(args);
-      useUI=true;//only to test if it works.
+        parseArguments(args);
 
         if(!useUI) {
 
