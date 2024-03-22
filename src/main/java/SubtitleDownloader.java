@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SubtitleDownloader {
     private static String movieFolderPath = null;
     private static String movieFilePath = null;
@@ -101,8 +104,7 @@ public class SubtitleDownloader {
              *       3) Else, download the subtitle for the movie
              */
 
-            // Lambda Expression for FileNameFilter
-            String[] files = new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
+            new File(movieFolderPath).list((directory, name) -> getSubtitlesForAllMovies(directory, name));
         }
         else {
             System.out.println("Please provide one of the following: \n1) Movie Name\n2) Movie File Path\n3) Movie Folder Path");
@@ -158,101 +160,102 @@ public class SubtitleDownloader {
     }
 
     private static boolean getSubtitles(String movieName, String movieFilePath) {
-        Scanner s = new Scanner(System.in);
-        String movieUrl = null;
-        boolean flag = true;
-
-        if (movieName == null) {
-            System.out.println("\nMovie doesn't exist in yifysubtitles.com\n\t\t( OR )\n\"Movie Name\" " +
-                    "which was parsed from Movie filepath gives empty result when searched\n" +
-                    "\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter\" to search once more" +
-                    "\nThis can provide appropriate results" +
-                    "\nMovie name ( Press ENTER To SKIP ): ");
-            movieName = s.nextLine().trim();
-            // Sometimes User might want to skip entering the Movie Name and move on to Next Movie
-            // So Pressing Enter should skip Downloading Subtitles for the Movie
-            if (movieName.equals("")) {
-                return false;
+        try (Scanner s = new Scanner(System.in)) {
+            String movieUrl = null;
+            boolean flag = true;
+    // Check if movieName is null and prompt user to enter movie name
+            if (movieName == null) {
+                System.out.println("\nMovie doesn't exist in yifysubtitles.com\n\t\t( OR )\n\"Movie Name\" " +
+                        "which was parsed from Movie filepath gives empty result when searched\n" +
+                        "\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter\" to search once more" +
+                        "\nThis can provide appropriate results" +
+                        "\nMovie name ( Press ENTER To SKIP ): ");
+                movieName = s.nextLine().trim();
+                // Sometimes User might want to skip entering the Movie Name and move on to Next Movie
+                // So Pressing Enter should skip Downloading Subtitles for the Movie
+                if (movieName.equals("")) {
+                    return false;
+                }
+                flag = false;
             }
-            flag = false;
-        }
-        System.out.println("\nMovie: " + movieName);
+            System.out.println("\nMovie: " + movieName);
 
-        // HTML Content of all Movies matching the movie name
-        Elements elements = getSearchResults(movieName);
+            // HTML Content of all Movies matching the movie name
+            Elements elements = getSearchResults(movieName);
 
-        // If the result is empty, Ask the User to input the Movie name
-        if (elements == null || elements.isEmpty()) {
-            System.out.println("\nNo results were found for Movie \"" + movieName + "\" in yifysubtitles.com");
-            // If the User was given an option to type the movie name, Don't prompt the user to Enter the Movie Name again
-            if (!flag) {
-                return false;
-            }
-            System.out.print("\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter 3\" to search again" +
-                    "\nMovie name ( Press ENTER To SKIP ): ");
-            movieName = s.nextLine().trim();
-            if (movieName.equals("")) {
-                return false;
-            }
-            elements = getSearchResults(movieName);
+            // If the result is empty, Ask the User to input the Movie name
             if (elements == null || elements.isEmpty()) {
-                System.out.println("Movie: " + movieName + " does not exists in yifysubtitles.com");
+                System.out.println("\nNo results were found for Movie \"" + movieName + "\" in yifysubtitles.com");
+                // If the User was given an option to type the movie name, Don't prompt the user to Enter the Movie Name again
+                if (!flag) {
+                    return false;
+                }
+                System.out.print("\nPlease enter a keyword/part of the Movie Name as in \"Harry\" in \"Harry Potter 3\" to search again" +
+                        "\nMovie name ( Press ENTER To SKIP ): ");
+                movieName = s.nextLine().trim();
+             // If user skips, return false
+                if (movieName.equals("")) {
+                    return false;
+                }
+                elements = getSearchResults(movieName);
+             // If still no results found, return false
+                if (elements == null || elements.isEmpty()) {
+                    System.out.println("Movie: " + movieName + " does not exists in yifysubtitles.com");
+                    return false;
+                }
+            }
+    // If only one result found, set movieUrl
+            if(elements.size() == 1) {
+                movieUrl = getMovieURL(elements.get(0));
+            }
+   // If multiple results found, prompt user to select one
+            else {
+                System.out.println("\nMore than one result found for: " + movieName);
+                AtomicInteger i = new AtomicInteger(0);
+                elements.forEach(e -> displayMovieAndYear(e, i.incrementAndGet()));
+                System.out.print("Please enter the number to select the movie to download subtitles ( PRESS 0 TO SKIP ): ");
+                int option = s.nextInt();
+                // Skip Processing the Current Movie
+                if (option == 0) {
+                    return false;
+                }
+                if (option < 0 ||option > elements.size()) {
+                    System.out.println("\n[ERROR] - INVALID OPTION SELECTED: " + option);
+                    return false;
+                }
+                movieUrl = getMovieURL(elements.get(option - 1));
+             // Update movieName with selected option
+                movieName = getMovieAndYear(elements.get(option - 1));
+            }
+    // Get subtitle URL for selected movie and language
+            String subtitleUrl = getSubtitleURL(movieUrl, language);
+            if (subtitleUrl == null) {
+                System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in language \"" + language  + "\" in yifysubtitles.com");
+                System.out.println("URL: " + movieUrl);
                 return false;
             }
-        }
+            System.out.println("Movie URL: " + movieUrl);
+            System.out.println("Subtitle URL: " + subtitleUrl);
 
-        if(elements.size() == 1) {
-            movieUrl = getMovieURL(elements.get(0));
-        }
-        else {
-            System.out.println("\nMore than one result found for: " + movieName);
-            AtomicInteger i = new AtomicInteger(0);
-            elements.forEach(e -> displayMovieAndYear(e, i.incrementAndGet()));
-            System.out.print("Please enter the number to select the movie to download subtitles ( PRESS 0 TO SKIP ): ");
-            int option = s.nextInt();
-            // Skip Processing the Current Movie
-            if (option == 0) {
+            // Download subtitle URL is same as Subtitle URL except /subtitles changes to /subtitle with ".zip" appended
+            String downloadSubtitleUrl = subtitleUrl.replace("/subtitles", "/subtitle") + ".zip";
+
+            String movieFolder;
+    // If movieFilePath is not null, get movie folder, else use current directory
+            if (movieFilePath != null) {
+                movieFolder = getMovieFolder(movieFilePath);
+            }
+            else {
+                movieFolder = System.getProperty("user.dir");
+            }
+    // If movieFolder is null, print error message and return false
+            if (movieFolder == null) {
+                System.out.println("Something went wrong while trying to get Movie folder for Movie File Path:\n\t" + movieFilePath + "\n");
                 return false;
             }
-            if (option < 0 ||option > elements.size()) {
-                System.out.println("\n[ERROR] - INVALID OPTION SELECTED: " + option);
-                return false;
-            }
-            movieUrl = getMovieURL(elements.get(option - 1));
-
-            // Update the Movie Name with the Option Selected
-            movieName = getMovieAndYear(elements.get(option - 1));
+    // Download and extract subtitle
+            downloadSubtitle(downloadSubtitleUrl, movieFolder);
         }
-
-        String subtitleUrl = getSubtitleURL(movieUrl, language);
-        if (subtitleUrl == null) {
-            System.out.println("\nSubtitle doesn't exist for the Movie \"" + movieName + "\" in language \"" + language  + "\" in yifysubtitles.com");
-            System.out.println("URL: " + movieUrl);
-            return false;
-        }
-        System.out.println("Movie URL: " + movieUrl);
-        System.out.println("Subtitle URL: " + subtitleUrl);
-
-        // Download subtitle URL is same as Subtitle URL except /subtitles changes to /subtitle with ".zip" appended
-        String downloadSubtitleUrl = subtitleUrl.replace("/subtitles", "/subtitle") + ".zip";
-
-        String movieFolder;
-        // If there is no movieFilePath given, then take the Current Directory
-        // as the place to download subtitles
-        if (movieFilePath != null) {
-            movieFolder = getMovieFolder(movieFilePath);
-        }
-        else {
-            movieFolder = System.getProperty("user.dir");
-        }
-
-        if (movieFolder == null) {
-            System.out.println("Something went wrong while trying to get Movie folder for Movie File Path:\n\t" + movieFilePath + "\n");
-            return false;
-        }
-
-        // Download and Extract the zip to get the Subtitle
-        downloadSubtitle(downloadSubtitleUrl, movieFolder);
         System.out.println("\nSuccessfully downloaded Subtitle for Movie: " + movieName + "\n");
         System.out.println("---------------------------------------------------------------" +
                 "---------------------------------------------------\n");
@@ -457,31 +460,35 @@ public class SubtitleDownloader {
 
 }
 
-class CommandOptions {
-    private List arguments;
-
-    // Constructor
-    CommandOptions(String[] args) {
-        arguments = Arrays.asList(args);
-    }
-
-    // Check whether the Option Exists
-    boolean hasOption (String option) {
-        return arguments.contains(option);
-    }
-
-    // Check whether the Option and Value Exists
-    boolean hasOptionAndValue(String option) {
-        return arguments.contains(option) && arguments.indexOf(option) + 1 < arguments.size();
-    }
-
-    // Return the Option's value if it exists
-    String valueOf(String option) {
-        if (arguments.indexOf(option) + 1 < arguments.size()) {
-            return (String)arguments.get(arguments.indexOf(option) + 1);
-        }
-        else {
-            return null;
-        }
-    }
-}
+class CommandOptions { 
+    private Map<String, String> options; 
+     // Constructor 
+    CommandOptions(String[] args) { 
+        options = new HashMap<>();
+        if (args != null && args.length > 0) {
+            String option = null;
+            for (int i = 0; i < args.length; i++) {
+                String arg = args[i];
+                if (arg.startsWith("-")) {
+                    option = arg;
+                    options.put(option, null);
+                } else if (option != null) {
+                    options.put(option, arg);
+                    option = null;
+    } 
+            } 
+        } 
+    } 
+     // Check whether the Option Exists 
+    boolean hasOption(String option) { 
+        return options.containsKey(option);
+    } 
+     // Check whether the Option and Value Exists 
+    boolean hasOptionAndValue(String option) { 
+        return options.containsKey(option) && options.get(option) != null;
+    } 
+     // Return the Option's value if it exists 
+    String valueOf(String option) { 
+        return options.get(option);
+    } 
+} 
